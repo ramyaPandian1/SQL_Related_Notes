@@ -1,0 +1,139 @@
+-- # Q1 - >get all products available  in the market
+-- #Syntax => 
+-- SELECT [col,*] 
+-- FROM [table] 
+-- WHERE [filter] 
+-- ORDERBY [col,cols] 
+-- LIMIT [number];
+
+SELECT * from farmer_market.product;
+
+-- # Q2 ->Get me only 5 products in market
+
+SELECT 
+* 
+FROM farmer_market.product 
+LIMIT 5;
+
+-- # Q3 ->Get me only product id , product_name and product_size
+
+SELECT 
+    product_id , 
+    product_name , 
+    product_size 
+FROM farmer_market.product;
+
+-- # Q4 -> get 5 product and sort data by product id 
+
+-- # default - ascending ,  DESC - decending
+
+SELECT 
+    product_id , 
+    product_name , 
+    product_size 
+FROM 
+    farmer_market.product 
+    ORDER BY product_id DESC  
+LIMIT 10;
+
+-- # Q5 -> order product_id y ascending , product name in descending 
+
+SELECT 
+    product_id , 
+    product_name , 
+    product_category_id 
+FROM farmer_market.product 
+    ORDER BY 
+    product_category_id ,product_name DESC  
+LIMIT 10;
+
+-- # Q 6 -> In the customer purchases, We have quantity and cost per qty seperate, query the total amount that the customer has paid along with date, customer id , vendor id, cost per qty and the total amt?
+
+SELECT 
+  customer_id ,
+  market_date , 
+  vendor_id , 
+  cost_to_customer_per_qty,
+  quantity * cost_to_customer_per_qty 
+FROM farmer_market.customer_purchases;
+
+-- One dynamic column is created with name "fo" my multiplying quantity and cost_to_customer_per_qty cloumn present in customer_purchases table.
+-- Now to change the name we can give alias (AS)
+
+SELECT 
+  customer_id ,
+  market_date , 
+  vendor_id , 
+  cost_to_customer_per_qty,
+  quantity * cost_to_customer_per_qty AS total_bill
+FROM farmer_market.customer_purchases;
+
+
+-- if the vaue is 16.9999999 --> rounf of with 2 decimal plax
+
+SELECT 
+  customer_id ,
+  market_date , 
+  vendor_id , 
+  cost_to_customer_per_qty,
+  ROUND(quantity * cost_to_customer_per_qty,2) AS total_bill
+FROM farmer_market.customer_purchases;
+
+-- #Question 7 Get full name of customer 
+SELECT 
+  CONCAT(customer_first_name," ", customer_last_name) AS customer_full_name
+  from `farmer_market.customer`
+
+-- Q8 - we need first letter and  last name should be captitalized example:Input : Ramya Pandian Output :Ramya PANDIAN
+
+SELECT 
+  CONCAT(customer_first_name," ", UPPER(customer_last_name)) AS customer_full_name
+  from `farmer_market.customer`
+
+-- if input is ramya Pandian output : Ramya PANDIAN
+-- NOTE - SUBSTR(VALUE,INITAL POINT , END POINT) 
+-- ENDPOINT - OPTIONAL 
+SELECT 
+  CONCAT(UPPER(SUBSTR( customer_first_name,1,1)),SUBSTR(customer_first_name, 2)," ", UPPER(customer_last_name)) AS customer_full_name
+  from `farmer_market.customer`
+
+-- Q 9 - Extract all the product name that are part of category1
+
+SELECT 
+  product_name, 
+  product_category_id
+  FROM `farmer_market.product`
+  WHERE product_category_id =1;
+
+
+-- Q10 - Print a report of everything customer_id 4 has ever purchased at the farmer's market sorted by market date n vendor id and product id 
+
+
+SELECT 
+  *
+  FROM farmer_market.customer_purchases
+  WHERE customer_id =4
+  ORDER BY market_date , vendor_id , product_id;
+
+  -- Q11 -  Get all products info for products with id  for products with id between 3 and 8 (not inclusive ) and product_ id --> so we can have 4 ,5,6,7,10 product id 
+
+  SELECT 
+  *
+  FROM farmer_market.product
+  WHERE product_id > 3 AND product_id < 8 OR product_id =10
+  ORDER BY product_id;
+
+
+-- Q12 - how to get the second highest value of quantity from customer_purchase 
+-- offset integer syntax : LIMIT integer offset integer
+-- offset 1 here it will take the second column 
+
+ SELECT 
+ * 
+ FROM farmer_market.customer_purchases
+ ORDER BY quantity DESC
+ limit 1 offset 1; 
+
+
+
+
