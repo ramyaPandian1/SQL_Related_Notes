@@ -126,13 +126,196 @@ SELECT
 
 -- Q12 - how to get the second highest value of quantity from customer_purchase 
 -- offset integer syntax : LIMIT integer offset integer
--- offset 1 here it will take the second column 
+-- offset 1 - OFFSET will tell from where to start 
+-- IN below example we have put LIMIT 1 and OFFSET 1 --> So it will start from index 1 ( 2nd row ) and --LIMIT is 1 
 
  SELECT 
  * 
  FROM farmer_market.customer_purchases
  ORDER BY quantity DESC
  limit 1 offset 1; 
+
+ --Q13 - FInd the details of purchase made by customer 4 and vendor 7 
+
+ SELECT * FROM `farmer_market.customer_purchases` WHERE product_id = 4 AND vendor_id = 7;
+
+ -- Q14 - If you wanted to find out what booth vendor 3 has assighned to on or before(less than or equal to) April20,2019
+ SELECT 
+  vendor_id ,market_date , booth_number
+FROM farmer_market.vendor_booth_assignments
+WHERE vendor_id = 3 AND  market_date <= "2019-04-20";
+
+-- ############################################## ASSIGHNMENTS#############################################
+
+-- Problem Statement:
+
+-- Calculate the weighted average rating from the columns vote count and vote average and save the column as 'Weighted_avg_rating' and display the top 10 movies and their rating up to two decimals based on the new column created.
+
+-- Note: Use the given formula to calculate a weighted average rating (v/(v+m) * R) + (m/(m+v) * C )
+
+-- Where,
+
+-- v is the number of votes for the movie vote_count;
+
+-- m is the minimum votes required, take m as 104.0;
+
+-- R is the average rating of the movie vote_average;
+
+-- C is the mean vote across the whole report take c as 5.97.
+
+-- Return the columns 'original_title' , 'Weighted_avg_rating'
+
+SELECT 
+    original_title , ROUND((vote_count/(vote_count +104.0)*vote_average )+ (104.0/(104.0+vote_count)* 5.97),2) AS Weighted_avg_rating
+    FROM movies
+ORDER BY Weighted_avg_rating DESC
+LIMIT 10;
+
+
+-- ################################################################################################### 
+-- DAY 2 
+-- 1. BETWEEN CLAUSE 
+-- NOTE :  include starting and end value 
+-- SYNTAX = BETWEEN startVALUE AND  endVALUE
+
+--Q1 . Find the booth assignments for vendor 7 for any market date that occurred between april 03 2019 and may 16 2019
+
+SELECT 
+  vendor_id ,market_date , booth_number
+FROM farmer_market.vendor_booth_assignments
+WHERE vendor_id = 7
+AND  
+market_date BETWEEN "2019-04-03" AND "2019-05-16";
+
+-- Q2 . Return a list customers with selected last name ['diaz','Edwards','wilson']
+
+SELECT CONCAT(customer_first_name , customer_last_name)
+FROM `farmer_market.customer`
+WHERE customer_last_name = "Diaz" OR customer_last_name = "Edwards" OR customer_last_name = "Wilson";
+
+-- 2. IN CLAUSE
+
+-- Above its not a efficient for more data. SO we need to use IN clause
+-- NOTE : THIS will check for exact match ( its also case sensitive)
+
+SELECT CONCAT(customer_first_name , customer_last_name)
+FROM `farmer_market.customer`
+WHERE customer_last_name IN ("Diaz" , "Edwards" ,"Wilson");
+
+-- 3. LIKE OPERATOR
+-- Has 2 major regular expression ( % and _)
+-- SYNTAX --> WHERE name LIKE '..' 
+-- (a) % -> example input - Ramya Pandian
+     -- 1.lastname LIKE 'pan%' --> Here it will start searching in DB with lastname start with "pan" so it can return pandayia , pandian , panreen like that 
+     -- 2 . Now we dont know starting or ending but we know the mid combinatioon 
+            -- lastname LIKE '%di%' --> it will pick with combination of names with "di"
+    -- %ab --> it can choose "abc","ssabdd", it should have ab in combination
+    -- ab% --> it should start with "ab"
+    -- %ab% --> search for ab combo 
+
+-- (b) Underscore( _ )->it is restricted 
+   -- lastname LIKE '__ndian' Here there are 2 underscore but it should end with ndian only strict 
+
+-- (c) % , _ -> "A_ _ _ m% "  Options 1. Autumn 2. Argument 3. Argentima 4. autumn 
+                            -- Out of these the matched are 1 ,2 
+-- NOTE --> CASE SENSITIVE 
+
+-- Q3 . You want a get a data about a customer you knew as 'JERRY' , but you werent sure if he was listed in a database as 'jerry' or 'jeremy' or jeremiah
+
+SELECT * 
+FROM farmer_market.customer
+WHERE customer_first_name like 'Jer%'
+
+-- Q4. You want to get data about a customer first name STARTS WITH "a" and lastname ENDS with 'e'
+
+SELECT * 
+FROM farmer_market.customer
+WHERE customer_first_name like 'A%' AND customer_last_name like '%e'
+
+--Q5 . You want get data with cutomer first name start with any letter and "a" in second position and LAST name ENDs with 'e'
+SELECT * 
+FROM farmer_market.customer
+WHERE customer_first_name like '_a%' AND customer_last_name like '%e'
+
+-- 3. NULL 
+-- IN python none -> No space , doesnt exit 
+-- IN sql NULL is equivalent to none in python 
+-- to check the value is null we can use WHERE colun name = NULL --> This will return 0 result since NUll doesnt have value instead we have to use   "is NULL" and "is NOT NULL"
+
+-- Q 6 - How to get null values from product table 
+SELECT * FROM farmer_market.product WHERE product_size is NULL;
+
+-- We need to replace  the NULL values because NULL value in DB is not good 
+--HOW to replace NULL value 
+--------  1.    COALESCE Function ----- 
+-- SYNTAX : coalesce("colname that has NULL values" , "value to be replaced ")
+
+SELECT product_name,
+coalesce(product_size,"size not available")
+FROM farmer_market.product;
+
+-- Here it will not change the actual DB 
+
+-----------------2 . IFNULL FUNCTION 
+-- SYNTAX  - ifnull("colname that has NULL values" , "value to be replaced ")
+
+SELECT product_name,
+ifnull(product_size,"size not available")
+FROM farmer_market.product;
+
+-- COALESCE                                   |       IFNULL
+-- 1.  replace more than 1 col                |1.it just take 2 arguments 
+                                                    --and return the fist if its not null 
+--     it can take 2 or more parameter        |
+--     and return the first non null parameter|   
+
+-----------------------  SUBQUERY  -----------------------
+--- It is query inside query 
+-- Q1 - Analyse the purchases made at the farmer market on days when it rained
+-- Here we need two table 
+1. to check the days are raining its in market_date_info table 
+2. To get the purchase details we need to check  customer_purchases table
+
+TO GET THE RAINY DAYS 
+
+SELECT * 
+FROM farmer_market.market_date_info
+WHERE market_rain_flag = 1;
+
+
+TO GET THE purchase DETAILS 
+
+SELECT 
+ROUND(quantity * cost_to_customer_per_qty,2) as total_bill, customer_id , vendor_id
+FROM farmer_market.customer_purchases
+
+-- SUBQUERY TO COMBINE BOTH 
+
+-- Since query 1 taking the rainy days is using where condition we can add that has subquery to query 2 
+-- We cant put market_date ' =' since the query 1 will return bunch of days it cant check so use "IN"
+
+SELECT 
+ROUND(quantity * cost_to_customer_per_qty,2) as total_bill, customer_id , vendor_id
+FROM farmer_market.customer_purchases
+WHERE market_date IN 
+(
+SELECT market_date
+FROM farmer_market.market_date_info
+WHERE market_rain_flag = 1
+);
+
+
+-- Q 2 . List down all the product details where product_category contains "Fresh"
+
+SELECT * FROM farmer_market.product
+WHERE product_category_id IN 
+(
+SELECT 
+product_category_id
+FROM farmer_market.product_category 
+WHERE product_category_name LIKE '%Fresh%'
+);
+
 
 
 
