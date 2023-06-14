@@ -47,7 +47,7 @@ FROM farmer_market.product
     product_category_id ,product_name DESC  
 LIMIT 10;
 
--- # Q 6 -> In the customer purchases, We have quantity and cost per qty seperate, query the total amount that the customer has paid along with date, customer id , vendor id, cost per qty and the total amt?
+-- # Q 6 -> In the customer_purchases, We have quantity and cost per qty seperate, query the total amount that the customer has paid along with date, customer id , vendor id, cost per qty and the total amt?
 
 SELECT 
   customer_id ,
@@ -69,7 +69,7 @@ SELECT
 FROM farmer_market.customer_purchases;
 
 
--- if the vaue is 16.9999999 --> rounf of with 2 decimal plax
+-- if the vaue is 16.9999999 -->  
 
 SELECT 
   customer_id ,
@@ -91,13 +91,14 @@ SELECT
   from `farmer_market.customer`
 
 -- if input is ramya Pandian output : Ramya PANDIAN
--- NOTE - SUBSTR(what is the input,INITAL POINT , END POINT) 
+-- NOTE - Substring - SUBSTR(what is the input,INITAL POINT , END POINT) 
 -- ENDPOINT - OPTIONAL 
+-- NOTE : It will start with index 1 not 0 
 SELECT 
   CONCAT(UPPER(SUBSTR( customer_first_name,1,1)),SUBSTR(customer_first_name, 2)," ", UPPER(customer_last_name)) AS customer_full_name
   from `farmer_market.customer`
 
--- Q 9 - Extract all the product name that are part of category1
+-- Q 9 - Extract all the product name that are part of category1 
 
 SELECT 
   product_name, 
@@ -109,11 +110,15 @@ SELECT
 -- Q10 - Print a report of everything customer_id 4 has ever purchased at the farmer's market sorted by market date n vendor id and product id 
 
 
+
+
 SELECT 
   *
   FROM farmer_market.customer_purchases
   WHERE customer_id =4
   ORDER BY market_date , vendor_id , product_id;
+
+  image.png
 
   -- Q11 -  Get all products info for products with id  for products with id between 3 and 8 (not inclusive ) and product_ id  10 --> so we can have 4 ,5,6,7,10 product id 
 
@@ -146,9 +151,21 @@ SELECT
  ORDER BY quantity DESC
  limit 1 offset 1; 
 
+ -- If i give limit 2 offset 1 -> its showing 2nd and third row since we need only one item give limit 1 
+
  --Q13 - FInd the details of purchase made by customer 4 and vendor 7 
 
- SELECT * FROM `farmer_market.customer_purchases` WHERE product_id = 4 AND vendor_id = 7;
+ SELECT * FROM `farmer_market.customer_purchases` WHERE customer_id = 4 AND vendor_id = 7;
+
+ -- Since details is asked we can write instead of * has 
+ select 
+customer_id,
+vendor_id,
+quantity,
+cost_to_customer_per_qty, 
+Round(quantity * cost_to_customer_per_qty,2) AS total_bill 
+from `farmer_market.customer_purchases` 
+where customer_id = 4 AND vendor_id=7;
 
  -- Q14 - If you wanted to find out what booth vendor 3 has assighned to on or before(less than or equal to) April20,2019
  SELECT 
@@ -566,6 +583,9 @@ WHERE customer_first_name like '_a%' AND customer_last_name like '%e'
 -- IN sql NULL is equivalent to none in python 
 -- to check the value is null we can use WHERE colun name = NULL --> This will return 0 result since NUll doesnt have value instead we have to use   "is NULL" and "is NOT NULL"
 
+-- NULL -> No space and doesnt exist 
+-- empty -> space and it does exit  
+
 -- Q 6 - How to get null values from product table 
 SELECT * FROM farmer_market.product WHERE product_size is NULL;
 
@@ -591,14 +611,32 @@ FROM farmer_market.product;
 -- 1.  replace more than 1 col                |1.it just take 2 arguments 
                                                     --and return the fist if its not null 
 --     it can take 2 or more parameter        |
---     and return the first non null parameter|   
+--     and return the first non null parameter|
+-- It can be used to return non null values   |
+-- Example select(id , product) from sales    |
+
+-- Sales table table 
+-- id    product 
+-- null   A
+-- 2       null
+-- 3       c
+-- null D
+
+-- select coalesce(id,product) from sales 
+
+-- ANS : 
+-- a
+-- 2
+-- 3   C
+-- D
 
 -----------------------  SUBQUERY  -----------------------
 --- It is query inside query 
 -- Q1 - Analyse the purchases made at the farmer market on days when it rained
 -- Here we need two table 
-1. to check the days are raining its in market_date_info table 
-2. To get the purchase details we need to check  customer_purchases table
+
+-- 1. to check the days are raining its in market_date_info table 
+-- 2. To get the purchase details we need to check  customer_purchases table
 
 TO GET THE RAINY DAYS 
 
@@ -726,9 +764,14 @@ WHERE first_name lIKE '%n';
 
 
 
--- DAY 4 - JOINTS 
+-- DAY 4 - JOINTS  and statements
 
--- CAUSE STATEMENTS -- this is  like SWITCH in python 
+-- Agenda 
+-- 1. Cause statements 
+--- JOINTS - 1. LEFT , 2. RIGHT , 3. INNER , 4. OUTER 
+---- Joints vs subquery 
+
+-->  CAUSE STATEMENTS -- this is  like SWITCH in python 
 -- It will be excuted row by row 
 
 --SYNTAX 
@@ -742,6 +785,7 @@ CASE
 END As table name  
 -- like default in switch is none of the cases are valid END will run
 -- END keyword is mandate but after AS table name is optional
+
 
 
 -- Q1 : Find out which vendors primarily sell fresh produce and which dont't
@@ -786,7 +830,7 @@ FROM `farmer_market.customer_purchases`
 
 5. HAVING - the groups are filtered with the gven condition 
 
-6. WONDOW functions 
+6. WINDOW functions 
 
 7. SELECT - the databases selects the given columns 
 
@@ -813,6 +857,8 @@ SELECT
   END AS bins_total_cost
 FROM `farmer_market.customer_purchases`
 
+---NOTE : Refer doc for one more example 
+
 -- JOINTS ----------------------------------------------------------
 /*
 SUBQUERY                                |             JOINS 
@@ -824,6 +870,8 @@ expensive                               |
 maintain if there are more than 3 levels|
 
 3. Mostly its developer fav             | 3. Its for Data analyst
+
+JOINS - 
 
 
 TYPES OF JOINS 
@@ -840,6 +888,10 @@ TYPES OF JOINS
 
 -- JOIN product and product_category table 
 
+-- The prefernce is given to left table 
+-- First it will give left table preference plus common col in both table 
+
+
 -- SYNTAX ----> SELECT * from <left table> LEFT JOIN <right table > ON lefttable.foreighkey = righttable.foreighkey
 
 -- In the above syntax * means it will return left table + right table columns fully 
@@ -855,9 +907,117 @@ FROM farmer_market.product
 LEFT JOIN farmer_market.product_category
 ON product.product_category_id = product_category.product_category_id
 
+/*
+QUESTION 1
+
+List all the products along with their product category name
+*/
+
+/*
+Here all products - so we are giving importance to PRODUCT table. SO left table will be PRODUCT 
+RIGHT table - Product category 
+*/
+
+SELECT 
+p.product_id,
+p.product_category_id,
+p.product_name,
+p.product_size,
+p.product_qty_type,
+pc.product_category_name
+FROM `farmer_market.product`  p
+left join `farmer_market.product_category` pr
+on p.product_category_id = pr.product_category_id
+
+/*
+RIGHT JOIN 
+
+1. Preference is right table and common element
+
+SELECT [cols] from <right table> RIGHT join <Left table>on right.id = left.id
+
+INNER JOIN 
+
+1. It takes only common element of both table 
+
+select [cols] from <table a> inner join < table b> on a.id = b.id 
+
+2. mostly nulls wont be there 
+
+*/
+
+-- QUESTION - Get all the customer who had purchased nothing from the market yet  
+
+-- Here we need to give preference to cuatomer table 
+
+SELECT * 
+from `farmer_market.customer` as c
+left join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where cp.customer_id is null;
+
+-- Here cp.customer_id will have null values if the customer has not purchased a order. thats y we are checking with is numm for that column
+
+
+-- Question 2 : List all the customers and their associated purchases
+-- Here we have to use inner join
+
+
+
+-- Question 3 : Get a list of customer's zip codes who mdae changes on 2019-04-06
+
+-- Here it is INNER JOINN
+
+/* NOTE :
+1.  whenever there is a "all" keyword in question then it will be RIGH/LEFT JOIN 
+2. Specific list/col then it will be INNER JOIN
+*/
+
+
+-- MULTIPLE JOINS - when we have to join more than 2 tables 
+
+-- Question Let's say we want details about all farmer's market booths and every vendor booth assignment for every market date with vendor name 
+
+/*
+Tables needed 
+1. all farmer's market booths - BOOTH table
+2. vendor booth assignment - VENDOR_BOOTH_ASSIGNMENT
+3. vendor name  - VENDOR TABLE
+
+// JOINS 
+1.  all farmer's market booths = LEFT JOIN (BOOTH AND VENDOR BOOTH ASSIGNMENT)
+2. every vendor booth assignment for every market date with vendor name   ( INNER JOIN VENDOR BOOTH ASSIGNMENT AND VENDOR TABLE)
+
+*/
+SELECT
+b.booth_number,
+b.booth_type,
+vb.market_date,
+v.vendor_id,
+v.vendor_name
+FROM  `farmer_market.booth` b
+LEFT JOIN `farmer_market.vendor_booth_assignments` as vb
+on b.booth_number = vb.booth_number
+INNER JOIN `farmer_market.vendor` v
+on v.vendor_id = vb.vendor_id
+order by vb.market_date;
+
+
+
+
+
+
+
+
+
+
+
 
 -- Q 1 - Get details of all vendors selling fresh or vegetables with product names and the quantity of the product in their inventory?
 -- Here 3 tables are used --> vendor , product , vendor_inventory
+
+
+
 
 
 
