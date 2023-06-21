@@ -928,19 +928,21 @@ pc.product_category_name
 FROM `farmer_market.product`  p
 left join `farmer_market.product_category` pr
 on p.product_category_id = pr.product_category_id
-
+---------------------------- RIGHT JOIN --------------------------
 /*
 RIGHT JOIN 
 
 1. Preference is right table and common element
 
-SELECT [cols] from <right table> RIGHT join <Left table>on right.id = left.id
+--------> SYNTAX : SELECT [cols] from <right table> RIGHT join <Left table>on right.id = left.id
 
-INNER JOIN 
+
+-------------------------------------- INNER JOIN    --------------------
+INNER JOIN ( ABintersection b)
 
 1. It takes only common element of both table 
 
-select [cols] from <table a> inner join < table b> on a.id = b.id 
+-----> SYNTAX : select [cols] from <table a> inner join < table b> on a.id = b.id 
 
 2. mostly nulls wont be there 
 
@@ -956,23 +958,46 @@ left join `farmer_market.customer_purchases` as cp
 on c.customer_id = cp.customer_id
 where cp.customer_id is null;
 
--- Here cp.customer_id will have null values if the customer has not purchased a order. thats y we are checking with is numm for that column
+-- Here cp.customer_id will have null values if the customer has not purchased a order. thats y we are checking with is null for that column
+
+-- The customer who has not purchased any order will be marked has null in JOIN table so we can check is null for customer purchase customer id 
 
 
 -- Question 2 : List all the customers and their associated purchases
+
+
 -- Here we have to use inner join
 
-
+select 
+c.customer_id,
+c.customer_first_name,
+c.customer_last_name
+from `farmer_market.customer` as c
+INNER join `farmer_market.customer_purchases` as cp;
 
 -- Question 3 : Get a list of customer's zip codes who mdae changes on 2019-04-06
 
+select zipcode from 
+join 
+on 
+where date = 2019-04-06
 -- Here it is INNER JOINN
+
 
 /* NOTE :
 1.  whenever there is a "all" keyword in question then it will be RIGH/LEFT JOIN 
 2. Specific list/col then it will be INNER JOIN
 */
-
+select 
+c.customer_id,
+c.customer_first_name,
+c.customer_last_name,
+c.customer_zip,
+cp.market_date
+from `farmer_market.customer` as c
+inner join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where cp.market_date = "2019-04-06";
 
 -- MULTIPLE JOINS - when we have to join more than 2 tables 
 
@@ -998,12 +1023,175 @@ v.vendor_name
 FROM  `farmer_market.booth` b
 LEFT JOIN `farmer_market.vendor_booth_assignments` as vb
 on b.booth_number = vb.booth_number
-INNER JOIN `farmer_market.vendor` v
+LEFT JOIN `farmer_market.vendor` v
 on v.vendor_id = vb.vendor_id
 order by vb.market_date;
 
 
 
+-------------------- FULL OUTER JOIN ----------------------- A U B 
+SYNTAX :
+
+select * 
+from t1 
+full outer join t2 
+on t1.id = t2.id 
+
+-- It will include all values from t1 and t2 in empty value it will cum NULL value 
+
+-- > FULL OUTER JOIN = LEFT JOIN + RIGHT JOIN 
+-- It will not work in MYSQL we have to use union LEFt JOIN UNION RIGHT JOIN
+
+/*
+UNION 
+1. it should have same number of columns 
+2. columns should have same order 
+3. columns shpuld have same datatype 
+
+Questions
+
+Find all customer who are either 
+1. New to market  OR 
+2. Have deleted their account  - means it will be deleted in customer table but in purchase history the customer will be there 
+
+
+Ans : table to be used is customer and customer purchase
+
+                    CUSTOMER                                  CUSTOMER _PURCHASE 
+1. Condition 1          Entry will be there            yet entry is not there since customer have entered now                                                     now only and not yet purchases 
+
+2. condition          Entry will not be there since     Here entry will be there since                                                   since the order history is not  deleted 
+                      we have deletde the customer 
+
+
+
+*/
+
+-- Case 1 : get new customer - here data will  be there is customer table but it will be not there is customer purchase table 
+select * from `farmer_market.customer` as c 
+left join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where  cp.customer_id is NULL;
+
+-- case 2 : get deteled customer - its opposite of case 1 
+select * from `farmer_market.customer` as c 
+right join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where  c.customer_id is NULL;
+
+-- combime case 1 and case 2 
+select * from `farmer_market.customer` as c 
+left join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where  cp.customer_id is NULL
+UNION all
+select * from `farmer_market.customer` as c 
+right join `farmer_market.customer_purchases` as cp
+on c.customer_id = cp.customer_id
+where  c.customer_id is NULL;
+
+------------------- CROSS JOIN -------
+
+/*
+1. one row will combine with all rows in another table - see doc attachment 
+2. its mostly used in ML part 
+2. computationally expensive 
+
+SYNTAX : select * from T1,T2
+*/
+
+
+
+-------------------------------- SELF JOIN ----------------------------------
+
+
+-- question  show the name of the manager for each emp in same row 
+
+/*
+1. Above we have given only one table 
+2. Self join is used in one table 
+3. Self join will create duplicate of same table and then perform join
+4. For above question 
+      - left join - here null will come we only need manager name and emo name so WRONG 
+      - RIGHT join - same WRONG 
+      - Inner join - it will work 
+*/
+
+select 
+emp.emp_id,
+emp.emp_name,
+mgr.emp_name as manager_name
+from employee as emp 
+inner join employee as mgr 
+ON emp.manager_id = mgr.emp_id
+
+
+-- ON condition -  refer doc for explanation 
+
+select 
+emp.employee_id,
+CONCAT(emp.first_name," ",emp.last_name) as employeeName,
+CONCAT(mgr.first_name , " ", mgr.last_name) as Managername
+from `employee_Schema.employees` as emp
+INNER JOIN `employee_Schema.employees` as mgr
+ON emp.manager_id = mgr.employee_id;
+
+
+-- QUESTION 2 - Find employee who are earning more than there managers 
+
+select 
+emp.employee_id,
+CONCAT(emp.first_name," ",emp.last_name) as employeeName,
+emp.salary,
+CONCAT(mgr.first_name , " ", mgr.last_name) as Managername,
+mgr.salary as managerSalary
+from `employee_Schema.employees` as emp
+INNER JOIN `employee_Schema.employees` as mgr
+ON emp.manager_id = mgr.employee_id
+where emp.salary > mgr.salary;
+
+
+-- Question 3 - Print all employees who all are managers 
+
+
+----------------- CORRELATED SUBQUERY -----------------------------------
+
+
+/*
+-- usually the subquery will not depend on each other and its bottom up approach 
+-- example :
+
+select * from employee where emp_id IN ( select emp_id in dept)
+
+
+here inner query is not dependednt on outer query each can run independently 
+
+-- CORRELATED SUBQUERY
+
+-- It is TOP DOWN approach 
+
+example :
+
+select * from employee emp  exists (select * from dept where dept.id = emp.id )
+
+In the above code :
+1. Inner query is dependent on outer query - emp.id in inner query 
+2. It is TOP down approach - so first it will store the employee table fully so its consumes more memory 
+3. exists (select * from dept where dept.id = emp.id ) --> here it will check whether the condiiton statisfies  with each row every time 
+
+
+
+Subquery – Time complexity => 2n 
+Correlated subquery – n square 
+
+
+
+Preferable 
+
+1. JOINS
+2. Subquery 
+3. Correlated subquery  
+*/
 
 
 
@@ -1013,8 +1201,11 @@ order by vb.market_date;
 
 
 
--- Q 1 - Get details of all vendors selling fresh or vegetables with product names and the quantity of the product in their inventory?
--- Here 3 tables are used --> vendor , product , vendor_inventory
+
+
+
+
+
 
 
 

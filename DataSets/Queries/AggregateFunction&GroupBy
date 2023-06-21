@@ -1,0 +1,27 @@
+/*TOPICS COVERED 
+1. Aggregate Functions 
+*/
+
+
+----- AGGREGATE FUNCTION --------------
+/*
+1. COUNT 
+    - It will return number of rows 
+    - count(*) - return number of rows and does not ignore NULLS 
+    - count(1)/ count("amit") - It will also return same result as count(*)  refer doc for more explanation
+    - count(col_name) - it will return rows for respective columns , It will not include null values 
+    - count(distinct product_size) - it will remove the duplicate values and give distinct values
+                               
+*/
+select 
+count(*),
+count(1),
+count(product_size),
+count(distinct product_size)
+from `farmer_market.product`;
+
+/*
+2. SUM() 3. AVG() 4. MIN() 5. MAX()*/
+
+
+-- get a list of the customer who made purcahhse 
