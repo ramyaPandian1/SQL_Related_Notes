@@ -22,6 +22,137 @@ from `farmer_market.product`;
 
 /*
 2. SUM() 3. AVG() 4. MIN() 5. MAX()*/
+select 
+count(*) as rows_count,
+SUM(salary) as total_salary,
+MIN(salary) as minimum_salary,
+MAX(salary)  as maximum_salary,
+AVG(salary)  as salary_avg
+from `employee_Schema.employees`;
 
 
--- get a list of the customer who made purcahhse 
+------------------------------------------ GROUP BY ------------------------------------
+
+/*
+Group by will groups the items 
+Syntax:
+    select 
+    market_date,
+    customer_id,
+    from `farmer_market.customer_purchases`
+    group by market_date,customer_id
+    order by market_date;
+
+Note : 1. In group by we can add more than one columns 
+            If we give more than one columns the condition is col_name1  <AND logical operator> col_name2 
+        2. Under select we can give fields which are either group by or aggregate function 
+             In the above example if we have to see quantity we cant see for that we need to add that field in group by 
+
+*/
+
+-- Question group by 1 : Get a list of customer who has purchased on each market_date
+
+select 
+market_date,
+customer_id,
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+-- Question group by 2 : Count number of customer who made purchase on each market date 
+
+select 
+market_date,
+customer_id,
+count(*) as number_of_purchase
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+--  Question group by 3 : calculate the total quantity purchased by each customer for each market date 
+
+select 
+market_date,
+customer_id,
+SUM(quantity) as total_quantity
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+--  Question group by 4 : calculate the total price paid by customer_id 3 per market_date
+
+-- When group is used we need to use aggregatioj function 
+
+select 
+market_date,
+SUM(quantity * cost_to_customer_per_qty) as total_price
+from `farmer_market.customer_purchases`
+where customer_id =3
+group by market_date
+order by market_date;
+
+
+--  Question group by 5 : what if we wanted to determine how much all customer had spent at each vendor regardless of date ?
+
+select 
+vendor_id,
+customer_id,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+group by vendor_id,customer_id
+order by customer_id;
+
+
+--  Question group by 6 : what if we wanted to determine how much customer_id = 3 had spent at each vendor regardless of date ?
+
+select 
+vendor_id,
+customer_id,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+where customer_id = 3
+group by vendor_id,customer_id
+order by customer_id;
+
+--  Question group by 7 : continuation of above question Lets add customer details and vendor details to these results. Customer details are in customer table and Vendor details are in venor table 
+
+-- So we need to join and we need to use because all keyword is there 
+
+select 
+v.vendor_id,
+c.customer_id,
+v.vendor_name,
+concat(c.customer_first_name , ' ',c.customer_last_name),
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases` as cp
+left join `farmer_market.customer` as c ON c.customer_id = cp.customer_id
+left join `farmer_market.vendor` as v ON v.vendor_id = cp.vendor_id
+group by vendor_id,customer_id
+order by customer_id;
+
+
+
+-- If we want to add feild in select either we need to add in group by or use aggregation function. in above it will trow error so we need to add cust name and vendor name in group by 
+
+
+select 
+v.vendor_id,
+c.customer_id,
+v.vendor_name,
+concat(c.customer_first_name , ' ',c.customer_last_name) as customer_name,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases` as cp
+left join `farmer_market.customer` as c ON c.customer_id = cp.customer_id
+left join `farmer_market.vendor` as v ON v.vendor_id = cp.vendor_id
+group by vendor_id,customer_id,v.vendor_name,c.customer_first_name,c.customer_last_name
+order by customer_id;
+
+
+
+
+
+
