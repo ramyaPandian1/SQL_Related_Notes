@@ -1,0 +1,366 @@
+/*TOPICS COVERED 
+1. Having clause
+2. windows function 
+3. over clause
+2. windows function analytical 
+      - row_number()
+      - rank()
+      -dense_rank()
+*/
+
+
+------------------------- HAVING CLAUSE -----------------------
+/*
+1. Where and Having are used for filtering 
+
+2. Having is used to filter after group by 
+
+3. If we want to filter after the group by we need to use having clause.
+
+4. having clause can be used with group by 
+
+5.where clause filters on top of base table 
+
+Inside having we can put aggregate function
+
+*/
+
+---- Q1 : Filter out vendors who bought atleast 100 items to the farmer market over the period 2019=05-02 and 2019--05-16
+
+select
+SUM(quantity) as total_items
+from `farmer_market.vendor_inventory`
+where market_date between  "2019-05-02" and "2019-05-16"
+and total_items >= 100
+group by vendor_id
+
+
+
+-- here it will throw error saying : total_items is not recognized since the order of execution 
+-- here we need to filter based in the group by table so we have to use haveing clause 
+
+select
+vendor_id,
+SUM(quantity) as total_items
+from `farmer_market.vendor_inventory`
+where market_date between  "2019-05-02" and "2019-05-16"
+group by vendor_id
+having total_items >= 100;
+
+
+ --- -- Q 2 : Find the average spent on each market day. we want to consider only those days where the number of 
+ -- purchases were more than 3 and the transaction anount was greater than 5
+
+-- avg for every market day 
+-- transcation amt 
+-- 
+
+
+
+select 
+market_date,
+Round(AVG(quantity * cost_to_customer_per_qty),2) as avg_amt
+from `farmer_market.customer_purchases`
+where quantity * cost_to_customer_per_qty > 5
+group by market_date
+having count(*) > 3;
+
+-- Here count will perform in each group 
+
+
+----------------------- WINDOW FUNCTION ----------------------------
+
+/*
+1. we can achieve the same thing wat we do in subquery and join we can achieve using WINDOW FUNCTION 
+2. WINDOW function gives fastest performance than join and subquery , this is most recommended way 
+3. Window function will not compress the data 
+4. window function keywod is OVER() clause -> it gives a dynamic column over row 
+            over () - it will add one more column in base table 
+                    - it will start row by row 
+
+            over() clause take 2 paramerts 
+              - partition by - it is like logical group by 
+              - order by  - 
+
+            PARTITIOn BY - its like group by, 
+                          Group by works at table level     
+
+            ORDER BY -              
+
+example :
+select SUM(salary) OVER () as total_salary from employee 
+
+output : here it will add one extra column 
+
+eid   name  salary   total_salary
+1     A     200       1000  
+2     B     300       1000
+3     C     500       1000
+
+
+
+*/
+
+
+
+-- get me the total salary from the
+
+select 
+sum(salary)
+ from `employee_Schema.employees`
+
+ -- dept wise 
+
+ select 
+ department_id,
+SUM(salary) as total_salary
+ from `employee_Schema.employees`
+ group by department_id
+
+ -- now i want to print the total_salary in each row 
+
+select 
+employee_id,
+first_name,
+department_id,
+SUM(salary) OVER(partition by department_id) as total_salary
+from `employee_Schema.employees`;
+
+
+----- Analytical functions -----
+
+-- 1. row_number , 2. rank()3. dense_rank()
+/*
+1.	Row_number  - it will give number of rows and assigh the idx to each row. It will include duplicate values. even 
+there are duplicate values it will just increament the number
+Syntax :
+Select
+Row_number() over( partion by … order by …)
+
+2. RANK() – here if there are duplicates it will name then with same number. and skip interval example refer doc 
+
+3. dense_rank() - here striclty it will assigh same number for duplicate and will not skip the values 
+
+
+*/
+
+select
+first_name,
+salary,
+row_number() over(order by salary desc) as idx,
+rank() over(order by salary desc) as rank_idx,
+dense_rank() over(order by salary desc) as dense_rank_idx
+from `employee_Schema.employees`
+order by dense_rank_idx,rank_idx,idx
+
+
+
+-- Ntile function 
+
+/*
+Ntile function
+
+It is a buckting function. Its main object to classify a data into some relevant bucktes
+It will disturb you data into fix number of buckets 
+Based on condition its disturbing and we can filter and get one bucket data 
+
+Synax :
+ntile (no of buckets need to be grouped ) over(partition by .. order by )
+
+
+
+*/
+
+select * from employee_Schema.employees  -- here table have 107 records 
+
+
+select 
+*,
+ntile(10) over(order by job_id) as ntile_job
+from `employee_Schema.employees`
+
+/* here the whole table data is ordered by job id and its distubuted into 10 bucktes. Since the table data is 107
+    107 /10 (10 is the ntile value given ) = 10.7 So i distributing all bucktes will have 11 
+
+*/
+
+
+
+-- To filter -- here we can filter based on bucket 
+
+select * from (
+select 
+*,
+ntile(10) over(order by job_id) as ntile_job
+from `employee_Schema.employees`
+) where ntile_job = 2;
+
+
+
+-------------- LAG AND LEAD -------------------
+
+/*
+NOTE 
+If I want to compare current with previous date 
+
+For example In prime day 
+
+Day1        	120
+Day 2 		    200
+Day 3 		    80 
+
+In above I want to compare and get data 
+DAYS 		  SALES 		comparison
+Day1      120		    0	
+Day 2 		200		    200-120 = 80
+Day 3 		80 		    80-200 =-120
+
+For that we can use lag and lead 
+
+Lag means previous data 
+
+Lag(col,numberof_col_needtogoback, replacevalue_in_case_of_null)
+
+Example : lag(col,1,0)
+
+Lead- means forward data 
+lead(col,numberof_col_needtogofront, replacevalue_in_case_of_null)
+
+Example : lead(col,1,0)
+DAYS		SALES		LAG		    LEAD
+Day1      120		Null/0		200	
+Day 2 		200		120		    80
+Day 3 		80 		200		    null/0
+
+
+
+
+
+
+example :
+Using the vendor_booth_assignments table in the farmer's market database, display each 
+vendors booth assignment for each market_date along side their previous booth assignments
+
+*/
+
+
+select
+vendor_id,
+market_date,
+booth_number as current_boothnumber,
+lag(booth_number , 1,0) over(partition by vendor_id order by market_date) as previous_boothnumber
+from `farmer_market.vendor_booth_assignments`
+
+
+-- example for lead 
+select
+vendor_id,
+market_date,
+booth_number as current_boothnumber,
+lag(booth_number , 1,0) over(partition by vendor_id order by market_date) as previous_boothnumber,
+lead(booth_number , 1,0) over(partition by vendor_id order by market_date) as next_boothnumber,
+lag(booth_number , 2,0) over(partition by vendor_id order by market_date) as second_previous_boothnumber,
+from `farmer_market.vendor_booth_assignments`
+
+
+/*Question : The market manager may want to filter these query results to a specific
+market date to determine which vendors are changing booths that day, so we can
+contact them and ensure setup goes smoothy. check it for date '2019-04-10'
+*/
+select * from (
+select
+vendor_id,
+market_date,
+booth_number,
+lag(booth_number,1) over(partition by vendor_id order by market_date) as previous_boothnumber
+from `farmer_market.vendor_booth_assignments`
+) as t
+where t.market_date = '2019-04-10' AND t.booth_number != t.previous_boothnumber
+
+
+/*
+t.booth_number != t.previous_boothnumber 
+
+not equal can be written has also 
+
+t.booth_number <> t.previous_boothnumber
+
+*/
+
+/*
+Question : The market manager may want to filter these query results to a specific
+market date to determine which vendors are NEW or CHANGING booths that day, so we can
+contact them and ensure setup goes smoothy. check it for date '2019-04-10' 
+*/
+
+-- to get no new vendor 
+t.previous_boothnumber is NULL
+
+select * from (
+select
+vendor_id,
+market_date,
+booth_number,
+lag(booth_number,1) over(partition by vendor_id order by market_date) as previous_boothnumber
+from `farmer_market.vendor_booth_assignments`
+) as t
+where t.market_date = '2019-04-10' AND (t.booth_number != t.previous_boothnumber OR t.previous_boothnumber is NULL)
+
+
+/*
+
+Question :
+
+Lets say you want to find out if the total sales of each market date are higher
+or lower than they are on the previous market date
+
+
+
+*/
+
+---- ASSIGHMNENT ----------
+
+
+/*
+WINING STREAK 
+
+
+
+Problem Description:
+
+The winning streak of a player is calculated as the number of consecutive wins uninterrupted by draws or losses.
+
+Write a query to count the longest winning streak for each player and save the new column as 'longest_streak'.
+
+Return the player_id and longest_streak.
+Return the result ordered by player_id in ascending order.
+Sample Input:
+
+
+
+Here explanation is in doc 
+
+
+*/
+
+
+
+select m.player_id,ifnull(max(cnt),0) as longest_streak from matches m left join
+(
+SELECT player_id , (streak2-streak1) as diff, count(streak2-streak1) as cnt FROM
+(
+select player_id,result,
+rank() over(partition by player_id,result order by match_day) as streak1,
+rank() over(partition by player_id order by match_day) as streak2
+from matches
+) t1
+where t1.result = "Win"
+group by player_id,diff
+) t2
+on m.player_id = t2.player_id
+group by m.player_id
+order by m.player_id;
+ 
+
+
+

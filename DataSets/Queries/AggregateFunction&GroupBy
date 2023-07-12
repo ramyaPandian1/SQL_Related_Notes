@@ -153,6 +153,249 @@ order by customer_id;
 
 
 
+-- Min and max salary based on department
+
+select
+e.department_id,
+d.department_name,
+MIN(salary) as lowest_salary,
+MAX(salary) as maximum_salary,
+from employee_Schema.employee as e
+INNER JOIN employee_Schema.department as d
+ON e.department_id = d.department_id
+group by e.department_id, d.department_name
+
+
+
+-- EXAMPLE FOR GROUP BY and aggregation 
+
+----- AGGREGATION FUNCTION -------------------
+select 
+count(*),
+count(1),
+count(product_size),
+count(distinct product_size)
+from `farmer_market.product`;
+
+--- SUM and other functions 
+select 
+count(*) as rows_count,
+SUM(salary) as total_salary,
+MIN(salary) as minimum_salary,
+MAX(salary)  as maximum_salary,
+AVG(salary)  as salary_avg
+from `employee_Schema.employees`;
+
+
+-- GROUP BY 
+
+-- Get a list of customer who has purchased on ech market_date
+
+select 
+market_date,
+customer_id,
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+-- Count number of customer who made purchase on each market date 
+
+select 
+market_date,
+customer_id,
+count(*) as number_of_purchase
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+-- calculate the total quantity purchased by each customer for each market date 
+
+select 
+market_date,
+customer_id,
+SUM(quantity) as total_quantity
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by market_date;
+
+-- calculate the total price paid by customer_id 3 per market_date
+
+-- When group is used we need to use aggregatioj function 
+select 
+market_date,
+SUM(quantity * cost_to_customer_per_qty) as total_price
+from `farmer_market.customer_purchases`
+where customer_id =3
+group by market_date
+order by market_date;
+
+-- what if we wanted to determine how much all customer had spent at each vendor regardless of date ?
+
+select 
+vendor_id,
+customer_id,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+group by vendor_id,customer_id
+order by customer_id;
+
+-- what if we wanted to determine how much customer_id = 3 had spent at each vendor regardless of date ?
+select 
+vendor_id,
+customer_id,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+where customer_id = 3
+group by vendor_id,customer_id
+order by customer_id;
+
+-- Lets add customer details and vendor details to these results. Customer details are in customer table and Vendor details are in venor table 
+-- So we need to join 
+
+select 
+v.vendor_id,
+c.customer_id,
+v.vendor_name,
+concat(c.customer_first_name , ' ',c.customer_last_name),
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases` as cp
+left join `farmer_market.customer` as c ON c.customer_id = cp.customer_id
+left join `farmer_market.vendor` as v ON v.vendor_id = cp.vendor_id
+group by vendor_id,customer_id
+order by customer_id;
+
+-- If we want to add feild in select either we need to add in group by or use aggregation function. in above it will trow error so we need to add cust name and vendor name in group by 
+
+
+select 
+v.vendor_id,
+c.customer_id,
+v.vendor_name,
+concat(c.customer_first_name , ' ',c.customer_last_name) as customer_name,
+count(*) as number_of_purchase,
+ROUND(SUM(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases` as cp
+left join `farmer_market.customer` as c ON c.customer_id = cp.customer_id
+left join `farmer_market.vendor` as v ON v.vendor_id = cp.vendor_id
+group by vendor_id,customer_id,v.vendor_name,c.customer_first_name,c.customer_last_name
+order by customer_id;
+
+-- Min and max salary based on department
+
+select
+e.department_id,
+d.department_name,
+MIN(salary) as lowest_salary,
+MAX(salary) as maximum_salary,
+from `employee_Schema.employee` as e
+INNER JOIN `employee_Schema.department` as d
+ON e.department_id = d.department_id
+group by e.department_id, d.department_name;
+
+
+
+--- count number of employees in the each department
+
+select 
+department_id as Department,
+count(*) as no_of_employees,
+CASE
+  when count(*) = 1 THEN 'Junior Department'
+  when count(*) <= 3 THEN 'Intermediate Department'
+  when count(*) > 4 THEN 'Senior Department'
+END AS Department_level
+from `employee_Schema.employees` as e
+group by e.department_id
+order by no_of_employees,Department;
+
+
+--Q. Get a list of all customers who made purchase on each market date
+select  market_date,  customer_id
+from `farmer_market.customer_purchases`
+group by market_date , customer_id
+order by 1,2 ;
+--Q. Count of all customers who made purchase on each market date
+select  market_date,  count(customer_id) as total_orders , 
+                    count(distinct customer_id) as total_unique_customer
+from `farmer_market.customer_purchases`
+group by market_date
+order by  2 desc ;
+--Q. Count number of purchases each customer made per market date
+select market_date , customer_id , count(*) as total_purchases
+from `farmer_market.customer_purchases`
+group by 1,2
+order by 1,3 desc ;
+--Q. Total quantity purchased by each customer per market date
+select market_date , customer_id, sum(quantity) as total_quantity
+from `farmer_market.customer_purchases`
+group by 1,2
+order by 1, 3 desc ; 
+
+--Q. Total quantity purchased by each customer per market date should be minimum 3 
+select market_date , customer_id, sum(quantity) as total_quantity
+from `farmer_market.customer_purchases`
+group by 1,2
+having total_quantity >=3 
+order by 1, 3 desc ; 
+
+
+--Q. Calculate different kinds of products purchased by each customer
+
+
+select
+customer_id,
+count(distinct product_id) as no_of_product_purchased,
+count(product_id) as duplicated_product
+from `farmer_market.customer_purchases`
+group by 1;
+
+
+--Q. Find top 10 customer with total price paid by customer 
+
+select
+customer_id,
+ROUND(sum(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+group by customer_id
+order by 2 desc
+limit 10;
+
+
+--Q. Find out total amount spent by customer on each  day
+
+select
+customer_id,
+market_date,
+ROUND(sum(quantity * cost_to_customer_per_qty),2) as total_price
+from `farmer_market.customer_purchases`
+group by market_date,customer_id
+order by 1;
+
+--Q. Find out average amount spent by customer per market date where number of purchases >= 3 
+--   and transaction amount >= 5 
+
+select
+customer_id,
+market_date,
+ROUND(avg(quantity * cost_to_customer_per_qty),2) as avg_sales
+from `farmer_market.customer_purchases`
+where quantity * cost_to_customer_per_qty >= 5
+group by market_date,customer_id
+having count(*) >=3
+order by customer_id
+
+
+
+
+
+
+
+
+
+
 
 
 

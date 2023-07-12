@@ -1,0 +1,158 @@
+/*TOPICS COVERED 
+1. Having clause
+2. windows function 
+3. over clause
+2. windows function analytical 
+      - row_number()
+      - rank()
+      -dense_rank()
+*/
+
+
+------------------------- HAVING CLAUSE -----------------------
+/*
+1. Where and Having are used for filtering 
+
+2. Having is used to filter after group by 
+
+3. If we want to filter after the group by we need to use having clause.
+
+4. having clause can be used with group by 
+
+5.where clause filters on top of base table 
+
+Inside having we can put aggregate function
+
+*/
+
+---- Q1 : Filter out vendors who bought atleast 100 items to the farmer market over the period 2019=05-02 and 2019--05-16
+
+select
+SUM(quantity) as total_items
+from `farmer_market.vendor_inventory`
+where market_date between  "2019-05-02" and "2019-05-16"
+and total_items >= 100
+group by vendor_id
+
+
+
+-- here it will throw error saying : total_items is not recognized since the order of execution 
+-- here we need to filter based in the group by table so we have to use haveing clause 
+
+select
+vendor_id,
+SUM(quantity) as total_items
+from `farmer_market.vendor_inventory`
+where market_date between  "2019-05-02" and "2019-05-16"
+group by vendor_id
+having total_items >= 100;
+
+
+ --- -- Q 2 : Find the average spent on each market day. we want to consider only those days where the number of 
+ -- purchases were more than 3 and the transaction anount was greater than 5
+
+-- avg for every market day 
+-- transcation amt 
+-- 
+
+
+
+select 
+market_date,
+Round(AVG(quantity * cost_to_customer_per_qty),2) as avg_amt
+from `farmer_market.customer_purchases`
+where quantity * cost_to_customer_per_qty > 5
+group by market_date
+having count(*) > 3;
+
+-- Here count will perform in each group 
+
+
+----------------------- WINDOW FUNCTION ----------------------------
+
+/*
+1. we can achieve the same thing wat we do in subquery and join we can achieve using WINDOW FUNCTION 
+2. WINDOW function gives fastest performance than join and subquery , this is most recommended way 
+3. Window function will not compress the data 
+4. window function keywod is OVER() clause -> it gives a dynamic column over row 
+            over () - it will add one more column in base table 
+                    - it will start row by row 
+
+            over() clause take 2 paramerts 
+              - partition by - it is like logical group by 
+              - order by  - 
+
+            PARTITIOn BY - its like group by, 
+                          Group by works at table level     
+
+            ORDER BY -              
+
+example :
+select SUM(salary) OVER () as total_salary from employee 
+
+output : here it will add one extra column 
+
+eid   name  salary   total_salary
+1     A     200       1000  
+2     B     300       1000
+3     C     500       1000
+
+
+
+*/
+
+
+
+-- get me the total salary from the
+
+select 
+sum(salary)
+ from `employee_Schema.employees`
+
+ -- dept wise 
+
+ select 
+ department_id,
+SUM(salary) as total_salary
+ from `employee_Schema.employees`
+ group by department_id
+
+ -- now i want to print the total_salary in each row 
+
+select 
+employee_id,
+first_name,
+department_id,
+SUM(salary) OVER(partition by department_id) as total_salary
+from `employee_Schema.employees`;
+
+
+----- Analytical functions -----
+
+-- 1. row_number , 2. rank()3. dense_rank()
+/*
+1.	Row_number  - it will give number of rows and assigh the idx to each row. It will include duplicate values. even 
+there are duplicate values it will just increament the number
+Syntax :
+Select
+Row_number() over( partion by … order by …)
+
+2. RANK() – here if there are duplicates it will name then with same number. and skip interval example refer doc 
+
+3. dense_rank() - here striclty it will assigh same number for duplicate and will not skip the values 
+
+
+*/
+
+select
+first_name,
+salary,
+row_number() over(order by salary desc) as idx,
+rank() over(order by salary desc) as rank_idx,
+dense_rank() over(order by salary desc) as dense_rank_idx
+from `employee_Schema.employees`
+order by dense_rank_idx,rank_idx,idx
+ 
+
+
+

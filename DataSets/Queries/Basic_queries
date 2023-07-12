@@ -36,6 +36,9 @@ FROM
     ORDER BY product_id DESC  
 LIMIT 10;
 
+
+
+
 -- # Q5 -> order product_id y ascending , product name in descending 
 
 SELECT 
@@ -1096,9 +1099,46 @@ where  c.customer_id is NULL;
 1. one row will combine with all rows in another table - see doc attachment 
 2. its mostly used in ML part 
 2. computationally expensive 
+3. it is the cartesian product of 2 tables where all the rows of table a is match with all the rows of table b 
 
 SYNTAX : select * from T1,T2
+
+3. It is cartesian product of 2 tables where all the rows of table a matched with table b 
+
+
+4. Used to generate a paired combination of each row of the forst table with each row of the second table 
+    This join is known as CARTESIAN JOIN 
+
+    A * B = {(a,1),(a,2),(a,3),(b,1),(b,2),(b,3),}
+
+    the purpoase of the corss join is to generate all possible combination of rows from two table 
 */
+
+-- example 
+select 
+product_id , product_name
+from `farmer_market.product`
+-- Here it is returning 23 rows 
+
+select 
+product_category_id,product_category_name
+from `farmer_market.product_category`
+
+-- here 7 rows 
+
+-- IF i do cross join then 23 * 7 = 161
+
+select
+product_id , product_name , product_category_name
+from `farmer_market.product` , `farmer_market.product_category`;
+
+
+-- for example when we try to get for one product we can see we get 7 rows since here each product is matched with all rows in product categry table 
+
+select
+product_id , product_name , product_category_name
+from `farmer_market.product` , `farmer_market.product_category`
+where product_name = 'Carrots'
 
 
 
@@ -1115,6 +1155,17 @@ SYNTAX : select * from T1,T2
       - left join - here null will come we only need manager name and emo name so WRONG 
       - RIGHT join - same WRONG 
       - Inner join - it will work 
+
+      Syntax :
+      select *
+      from <table> a , <table> b
+      where a.id = b.id
+
+      OR 
+      select *
+      from <table> a 
+      join <table> b 
+      on a.id = b.id 
 */
 
 select 
@@ -1192,6 +1243,77 @@ Preferable
 2. Subquery 
 3. Correlated subquery  
 */
+
+
+
+
+
+
+---------------------------- ASSIGHNMENTS ---------------
+
+/*Q6. Shortest distance
+Problem Description:
+
+Write a query to find the shortest distance between any two points from the points table. Round the distance to two decimal points
+
+Note:
+
+The distance between two points p1(x1, y1) and p2(x2, y2) is calculated using euclidean distance formula √((x2 - x1)2 + (y2 - y1)2).
+Save the new column as 'shortest'.
+Sample Input:
+
+Table: points
+X   Y
+-1  -1
+0   0
+-2  -2
+
+
+
+Sample Output:
+
+shortest
+1
+
+
+
+Sample Explanation: The shortest distance is 1 from point (-1, -1) to (-1, 2).
+
+
+
+Explanation :
+
+The formula is :  √((x2 - x1)2 + (y2 - y1)2).
+
+here we need to finc shortest distance between each points means each row. 
+we need to self join 
+
+X   Y           X     Y       
+-1  -1          -1    -1
+0   0            0    0
+-2  -2           -2    -2
+
+Now do cross JOIN 
+
+X   Y           X2     Y2       
+-1  -1          -1    -1
+0   0            -1   -1
+-2  -2           -1    -1
+
+
+Here (-1 -1 )  (-1,-1 ) -- frst row is not the line its a point , so (x,y) and (x2,y2) should be different 
+
+
+*/
+
+
+
+select 
+ROUND(sqrt(pow(p1.x - p2.x,2) + pow( p1.y - p2.y,2)),2) as shortest
+from points p1 , points p2
+where !(p1.x = p2.x and p1.y =p2.y) -- it checks both point dont have same value
+order by shortest
+limit 1
 
 
 
