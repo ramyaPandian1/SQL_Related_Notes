@@ -23,6 +23,13 @@
 
 Inside having we can put aggregate function
 
+Having clause and where clause are a conditional filer 
+
+Inside grp if u r doing filter using having clause 
+
+
+where will work on tabular level 
+
 */
 
 ---- Q1 : Filter out vendors who bought atleast 100 items to the farmer market over the period 2019=05-02 and 2019--05-16
@@ -71,6 +78,7 @@ having count(*) > 3;
 ----------------------- WINDOW FUNCTION ----------------------------
 
 /*
+0. it is low level function 
 1. we can achieve the same thing wat we do in subquery and join we can achieve using WINDOW FUNCTION 
 2. WINDOW function gives fastest performance than join and subquery , this is most recommended way 
 3. Window function will not compress the data 
@@ -97,6 +105,11 @@ eid   name  salary   total_salary
 2     B     300       1000
 3     C     500       1000
 
+In window function we have 2 things 
+
+1. Aggregation 
+
+2. Analytical - row_number(), rank() , denserank()
 
 
 */
@@ -133,6 +146,7 @@ from `employee_Schema.employees`;
 /*
 1.	Row_number  - it will give number of rows and assigh the idx to each row. It will include duplicate values. even 
 there are duplicate values it will just increament the number
+2. it simply attaches a sequence to your rows 
 Syntax :
 Select
 Row_number() over( partion by … order by …)
@@ -312,12 +326,28 @@ where t.market_date = '2019-04-10' AND (t.booth_number != t.previous_boothnumber
 Question :
 
 Lets say you want to find out if the total sales of each market date are higher
-or lower than they are on the previous market date
-
-
+or lower than they are on the previous market date.
 
 */
 
+select
+*,
+t.previous_date_sale - t.total_sale
+from(
+select
+  market_date,
+  sum(quantity * cost_to_customer_per_qty) as total_sale,
+  lag(sum(quantity * cost_to_customer_per_qty),1,0) over( order by market_date) as previous_date_sale
+from `farmer_market.customer_purchases`
+group by market_date
+) as t
+order by market_date
+
+
+------------------------------ Nth value -------------------
+
+
+ 
 ---- ASSIGHMNENT ----------
 
 
@@ -354,7 +384,7 @@ rank() over(partition by player_id,result order by match_day) as streak1,
 rank() over(partition by player_id order by match_day) as streak2
 from matches
 ) t1
-where t1.result = "Win"
+where t1.result = "Win"  -- here we need  to filter based on win since we need winning streak 
 group by player_id,diff
 ) t2
 on m.player_id = t2.player_id

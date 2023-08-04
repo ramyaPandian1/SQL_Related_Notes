@@ -862,7 +862,7 @@ FROM `farmer_market.customer_purchases`
 
 ---NOTE : Refer doc for one more example 
 
--- JOINTS ----------------------------------------------------------
+-- JOINS ----------------------------------------------------------
 /*
 SUBQUERY                                |             JOINS 
                                         |
@@ -890,6 +890,7 @@ TYPES OF JOINS
 -- LEFT JOIN EXAMPLE 
 
 -- JOIN product and product_category table 
+-- LEFT JOIN = common elements + left table all data 
 
 -- The prefernce is given to left table 
 -- First it will give left table preference plus common col in both table 
@@ -936,6 +937,7 @@ on p.product_category_id = pr.product_category_id
 RIGHT JOIN 
 
 1. Preference is right table and common element
+-- RIGHT JOIN = common elements + right table all data 
 
 --------> SYNTAX : SELECT [cols] from <right table> RIGHT join <Left table>on right.id = left.id
 
@@ -948,6 +950,7 @@ INNER JOIN ( ABintersection b)
 -----> SYNTAX : select [cols] from <table a> inner join < table b> on a.id = b.id 
 
 2. mostly nulls wont be there 
+ A intersection B
 
 */
 
@@ -1044,6 +1047,7 @@ on t1.id = t2.id
 
 -- > FULL OUTER JOIN = LEFT JOIN + RIGHT JOIN 
 -- It will not work in MYSQL we have to use union LEFt JOIN UNION RIGHT JOIN
+---A U B
 
 /*
 UNION 
